@@ -4,6 +4,7 @@
 # Config MySQL / Camagru
 # -----------------------------
 DB_NAME="camagru"
+DB_HOST="mysql.42.fr"
 DB_USER="$USER"       # ton login 42
 DB_PASS="Nebulios760@"            # laisse vide si pas de mot de passe
 DB_HOST="127.0.0.1"
@@ -12,13 +13,7 @@ DB_HOST="127.0.0.1"
 PROJECT_DIR="$(pwd)"
 
 # Port PHP intégré
-PHP_PORT=8080
-
-# -----------------------------
-# Créer la base si elle n'existe pas
-# -----------------------------
-echo "Création de la base de données si nécessaire..."
-mysql -u $DB_USER -p$DB_PASS -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
+PHP_PORT=8081
 
 # -----------------------------
 # Vérifier / créer dossier images
