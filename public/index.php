@@ -12,7 +12,7 @@
     <a href="upload.php"><button>Voir la galerie</button></a>
 
     <!-- Méthode 2 : bouton avec JavaScript -->
-    <button onclick="window.location.href='profile.php'">Mon profil</button>
+    <button onclick="window.location.href='gallery.php'">Mon profil</button>
 
     <!-- Ici tu peux ajouter d'autres boutons si besoin -->
 </body>
