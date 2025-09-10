@@ -1,14 +1,13 @@
 <?php
-$DB_HOST = '127.0.0.1';
-$DB_NAME = 'camagru';
-$DB_USER = getenv('USER');  // ton login 42
-$DB_PASS = 'nano ~/camagru/config/database.p;'              // vide si pas de mot de passe
+// Chemin vers le fichier SQLite (sera créé automatiquement si absent)
+$DB_FILE = __DIR__ . '/camagru.sqlite';
 
 try {
-    $pdo = new PDO("mysql:host=$DB_HOST;dbname=$DB_NAME;charset=utf8", $DB_USER, $DB_PASS);
+    $pdo = new PDO("sqlite:" . $DB_FILE);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Erreur connexion DB: " . $e->getMessage());
-}
-?>
 
+    // Activer les clés étrangères
+    $pdo->exec("PRAGMA foreign_keys = ON;");
+} catch (PDOException $e) {
+    die("❌ Erreur de connexion SQLite : " . $e->getMessage());
+}
