@@ -1,14 +1,16 @@
-CONTAINER=camagru_php
+SERVICE=php
+PORT=8080
 
-all: setup start
+all: up setup
+
+up:
+	docker-compose up -d --build
 
 setup:
-	docker exec -it $(CONTAINER) php config/setup.php
-
-start:
-	docker exec -d $(CONTAINER) php -S 0.0.0.0:$(PORT) -t /app/public
+	docker-compose exec $(SERVICE) php config/setup.php
 
 stop:
-	docker stop $(CONTAINER)
+	docker-compose down
 
-trdysty: stop start
+re: stop up
+
