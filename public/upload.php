@@ -1,45 +1,97 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Camagru - Upload</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <title>Uploader une photo avec sticker</title>
 </head>
 <body>
-    <h1>Uploader une image</h1>
+  <h1>Uploader une photo + sticker</h1>
+  <form method="POST" action="upload.php" enctype="multipart/form-data">
+    <input type="file" name="photo" accept="image/*" required><br><br>
 
-    <!-- enctype="multipart/form-data" est OBLIGATOIRE pour uploader un fichier -->
-    <form action="upload.php" method="post" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit" name="submit">Uploader</button>
-    </form>
+    <label for="sticker">Choisir un sticker :</label>
+    <select name="sticker" id="sticker" required>
+      <option value="moustache.png">Moustache</option>
+      <option value="lunette.png">Lunettes</option>
+      <option value="chapeau.png">Chapeau</option>
+    </select><br><br>
 
-    <a href="index.php">Retour à l'accueil</a>
+    <button type="submit">Envoyer</button>
+  </form>
+</body>
+<body>
+  <h1>Prendre une photo</h1>
+
+  <video id="video" autoplay width="400"></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <form method="POST" action="upload.php" enctype="multipart/form-data" id="uploadForm">
+    <input type="hidden" name="photo" id="photoInput">
+    <button id="snapBtn" disabled>Prendre la photo</button>
+  </form>
+
+  <script src="js/webcam.js"></script>
 </body>
 </html>
 
+
 <?php
-if (isset($_POST['submit'])) {
-    $targetDir = "uploads/"; // dossier où stocker les images
-    if (!is_dir($targetDir)) {
-        mkdir($targetDir, 0755, true); // crée le dossier s'il n'existe pas
-    }
+$uploadDir = __DIR__ . "/uploads/";
+if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
-    $targetFile = $targetDir . basename($_FILES["image"]["name"]);
-    $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+$stickersDir = __DIR__ . "/stickers/";
 
-    // Vérifie si c'est bien une image
-    $check = getimagesize($_FILES["image"]["tmp_name"]);
-    if ($check === false) {
-        echo "❌ Ce fichier n'est pas une image.";
-        exit;
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photo'])) {
+    // Fichier uploadé
+    $tmpFile = $_FILES['photo']['tmp_name'];
 
-    // Déplace l'image du dossier temporaire vers "uploads/"
-    if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
-        echo "✅ Image ". htmlspecialchars(basename($_FILES["image"]["name"])) . " uploadée avec succès.";
-    } else {
-        echo "❌ Erreur pendant l'upload.";
-    }
+    // Vérifier le sticker choisi
+    $stickerName = $_POST['sticker'] ?? '';
+    $stickerPath = $stickersDir . basename($stickerName);
+    if (!file_exists($stickerPath)) die("❌ Sticker introuvable");
+
+    // Charger l'image source
+    $src = imagecreatefromstring(file_get_contents($tmpFile));
+    imagesavealpha($src, true);
+    imagealphablending($src, true);
+
+    // Charger le sticker
+    $sticker = imagecreatefrompng($stickerPath);
+    imagesavealpha($sticker, true);
+    imagealphablending($sticker, true);
+
+    // Dimensions
+    $srcW = imagesx($src);
+    $srcH = imagesy($src);
+    $stickerW = imagesx($sticker);
+    $stickerH = imagesy($sticker);
+
+    // Redimensionner le sticker (ex: 20% de la largeur de la photo)
+    $newStickerW = (int)($srcW * 0.2);
+    $newStickerH = (int)($stickerH * ($newStickerW / $stickerW));
+    $stickerResized = imagecreatetruecolor($newStickerW, $newStickerH);
+    imagesavealpha($stickerResized, true);
+    imagealphablending($stickerResized, false);
+    imagecopyresampled($stickerResized, $sticker, 0, 0, 0, 0, $newStickerW, $newStickerH, $stickerW, $stickerH);
+
+    // Position (bas-droite)
+    $x = $srcW - $newStickerW - 10;
+    $y = $srcH - $newStickerH - 10;
+
+    // Superposer le sticker
+    imagecopy($src, $stickerResized, $x, $y, 0, 0, $newStickerW, $newStickerH);
+
+    // Sauvegarder en PNG
+    $filename = $uploadDir . uniqid("img_") . ".png";
+    imagepng($src, $filename);
+
+    // Libération mémoire
+    imagedestroy($src);
+    imagedestroy($sticker);
+    imagedestroy($stickerResized);
+
+    echo "✅ Image générée avec sticker choisi !<br>";
+    echo "<img src='uploads/" . basename($filename) . "' style='max-width:400px'>";
+} else {
+    echo "❌ Aucun fichier reçu.";
 }
-?>
+

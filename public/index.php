@@ -8,13 +8,13 @@
 <body>
     <h1>Bienvenue sur Camagru !</h1>
 
-    <!-- Méthode 1 : bouton avec <a> -->
     <a href="upload.php"><button>Voir la galerie</button></a>
 
-    <!-- Méthode 2 : bouton avec JavaScript -->
     <button onclick="window.location.href='gallery.php'">Mon profil</button>
 
-    <!-- Ici tu peux ajouter d'autres boutons si besoin -->
+    <button onclick="window.location.href='register.php'">S'inscrire</button>
+
+    <button onclick="window.location.href='login.php'">Connexion</button>
 </body>
 </html>
 

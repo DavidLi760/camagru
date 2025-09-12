@@ -1,7 +1,7 @@
 SERVICE=php
 PORT=8080
 
-all: up setup
+all: up
 
 up:
 	docker-compose up -d --build
@@ -12,5 +12,5 @@ setup:
 stop:
 	docker-compose down
 
-re: stop up
+re: stop up setup
 

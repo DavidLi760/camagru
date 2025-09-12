@@ -9,6 +9,8 @@ try {
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
+            confirmation_token TEXT,
+            is_confirmed INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     ");
