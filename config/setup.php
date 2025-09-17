@@ -9,11 +9,12 @@ try {
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
-            confirmation_token TEXT,
-            is_confirmed INTEGER DEFAULT 0,
+            confirmation_token TEXT,   -- token unique envoyé par mail
+            is_confirmed INTEGER DEFAULT 0, -- 0 = pas confirmé, 1 = confirmé
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     ");
+
 
     // Table des images
     $pdo->exec("

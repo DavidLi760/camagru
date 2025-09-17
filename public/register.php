@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             // Préparer le mail de confirmation
-            $confirmationLink = "http://ton-domaine.com/confirm.php?token=$token";
+            $confirmationLink = "http://localhost:8080/confirm.php?token=$token";
             $subject = "Confirmez votre compte";
             $body = "Bonjour $username,\n\nMerci de vous inscrire ! Veuillez confirmer votre compte en cliquant sur le lien suivant :\n$confirmationLink";
 
