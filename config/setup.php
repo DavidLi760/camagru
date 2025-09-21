@@ -10,6 +10,7 @@ try {
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             confirmation_token TEXT,   -- token unique envoyé par mail
+	    notify_on_comment INTEGER DEFAULT 1, --token pour envoyer mail quand comment
 	    reset_token TEXT,          -- token pour réinitialisation de mot de passe
             is_confirmed INTEGER DEFAULT 0, -- 0 = pas confirmé, 1 = confirmé
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
