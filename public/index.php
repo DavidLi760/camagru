@@ -8,13 +8,16 @@
 <body>
     <h1>Bienvenue sur Camagru !</h1>
 
-    <a href="upload.php"><button>Voir la galerie</button></a>
+    <a href="upload.php"><button>Upload des images</button></a>
 
-    <button onclick="window.location.href='gallery.php'">Mon profil</button>
+    <button onclick="window.location.href='gallery.php'">Ma gallerie</button>
 
     <button onclick="window.location.href='register.php'">S'inscrire</button>
 
     <button onclick="window.location.href='login.php'">Connexion</button>
+
+    <button onclick="window.location.href='profile.php'">Mon profil</button>
+
 </body>
 </html>
 
