@@ -7,6 +7,7 @@ up:
 	docker-compose up -d --build
 
 setup:
+	rm -rf ./config/camagru.sqlite
 	docker-compose exec $(SERVICE) php config/setup.php
 
 stop:
