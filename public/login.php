@@ -5,12 +5,12 @@ require_once __DIR__ . '/../config/database.php';
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email']);
+    $username = trim($_POST['username']); // utilisation du username
     $password = $_POST['password'];
 
     try {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email");
-        $stmt->execute([':email' => $email]);
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt->execute([':username' => $username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: profile.php');
             exit;
         } else {
-            $message = "❌ Email ou mot de passe incorrect.";
+            $message = "❌ Nom d'utilisateur ou mot de passe incorrect.";
         }
     } catch (PDOException $e) {
         $message = "❌ Erreur : " . $e->getMessage();
@@ -39,11 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p><?php echo $message; ?></p>
     <?php endif; ?>
     <form method="POST" action="">
-        <input type="email" name="email" placeholder="Email" required>
+        <input type="text" name="username" placeholder="Nom d'utilisateur" required>
         <input type="password" name="password" placeholder="Mot de passe" required>
         <button type="submit">Se connecter</button>
-	<p><a href="forgot_password.php">Mot de passe oublié ?</a></p>
+        <p><a href="forgot_password.php">Mot de passe oublié ?</a></p>
     </form>
 </body>
 </html>
-
