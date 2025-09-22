@@ -66,6 +66,10 @@ $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div style="margin-bottom:15px;">
                 <img src="<?php echo htmlspecialchars($img['image_path']); ?>" style="max-width:200px;">
                 <p>Publié le <?php echo htmlspecialchars($img['created_at']); ?></p>
+                <form method="POST" action="delete_image.php" style="margin-top:5px;">
+                    <input type="hidden" name="image_id" value="<?php echo $img['id']; ?>">
+                    <button type="submit">🗑️ Supprimer</button>
+                </form>
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
