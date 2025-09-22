@@ -6,10 +6,10 @@ if (!isset($_SESSION['user_id'])) {
     die("❌ Vous devez être connecté pour uploader une image.");
 }
 
-$uploadDir = __DIR__ . "/uploads/"; // chemin serveur
+$uploadDir = __DIR__ . "/uploads/";
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
-$stickersDir = __DIR__ . "/stickers/"; // dossier stickers
+$stickersDir = __DIR__ . "/stickers/";
 
 $successMsg = "";
 $imgPathRel = "";
@@ -31,14 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tmpFile = null;
     $fromWebcam = false;
 
-    // 1️⃣ Si fichier uploadé
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
         $tmpFile = $_FILES['photo']['tmp_name'];
-    }
-    // 2️⃣ Si photo prise par webcam (base64)
-    elseif (isset($_POST['photo']) && strpos($_POST['photo'], 'data:image') === 0) {
+    } elseif (isset($_POST['photo']) && strpos($_POST['photo'], 'data:image') === 0) {
         $data = $_POST['photo'];
-        $data = explode(',', $data)[1]; // retirer "data:image/png;base64,"
+        $data = explode(',', $data)[1]; 
         $tmpFile = tempnam(sys_get_temp_dir(), 'cam_');
         file_put_contents($tmpFile, base64_decode($data));
         $fromWebcam = true;
@@ -46,13 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("❌ Aucune image reçue");
     }
 
-    // --- Charger image source ---
     $src = @imagecreatefromstring(file_get_contents($tmpFile));
     if (!$src) die("❌ Impossible de charger l'image source.");
     imagesavealpha($src, true);
     imagealphablending($src, true);
 
-    // --- Redimension sticker (20% largeur) ---
+    // Redimension sticker
     $srcW = imagesx($src);
     $srcH = imagesy($src);
     $stickerW = imagesx($sticker);
@@ -66,26 +62,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     imagealphablending($stickerResized, false);
     imagecopyresampled($stickerResized, $sticker, 0,0,0,0, $newStickerW, $newStickerH, $stickerW, $stickerH);
 
-    // Position bas-droite
     $x = $srcW - $newStickerW - 10;
     $y = $srcH - $newStickerH - 10;
-
     imagecopy($src, $stickerResized, $x, $y, 0, 0, $newStickerW, $newStickerH);
 
-    // --- Enregistrement ---
     $filenameRel = "uploads/" . uniqid("img_") . ".png";
     $filenameFull = __DIR__ . "/" . $filenameRel;
     imagepng($src, $filenameFull);
 
-    // Libération mémoire
     imagedestroy($src);
     imagedestroy($sticker);
     imagedestroy($stickerResized);
 
-    // Supprimer fichier temporaire webcam
     if ($fromWebcam) unlink($tmpFile);
 
-    // --- Insertion en BDD ---
     $stmt = $pdo->prepare("INSERT INTO images (user_id, image_path) VALUES (:uid, :path)");
     $stmt->execute([
         ":uid" => $_SESSION['user_id'],
@@ -110,64 +100,132 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <img src="<?php echo htmlspecialchars($imgPathRel); ?>" style="max-width:400px">
 <?php endif; ?>
 
-<h1>Uploader une photo + sticker</h1>
-<form method="POST" action="upload.php" enctype="multipart/form-data">
-    <input type="file" name="photo" accept="image/*"><br><br>
+<h1>Uploader une photo ou utiliser la webcam avec sticker</h1>
+<input type="file" id="fileInput" accept="image/*">
+<button id="clearFileBtn">❌ Supprimer</button><br><br>
 
-    <label for="sticker">Choisir un sticker :</label>
-    <select name="sticker" id="sticker" required>
-        <option value="moustache.png">Moustache</option>
-        <option value="lunette.png">Lunettes</option>
-        <option value="chapeau.png">Chapeau</option>
-    </select><br><br>
+<canvas id="preview" width="400" height="300" style="border:1px solid #ccc;"></canvas><br>
 
-    <button type="submit">Envoyer</button>
-</form>
+<label for="stickerWebcam">Choisir un sticker :</label>
+<select id="stickerWebcam" required>
+    <option value="moustache.png">Moustache</option>
+    <option value="lunette.png">Lunettes</option>
+    <option value="chapeau.png">Chapeau</option>
+</select><br><br>
 
-<h1>Prendre une photo</h1>
-<video id="video" autoplay width="400"></video>
-<canvas id="canvas" style="display:none;"></canvas>
-<form method="POST" action="upload.php" enctype="multipart/form-data" id="uploadForm">
+<button id="snapBtn" disabled>Prendre / Uploader la photo</button>
+<button id="camToggleBtn">Désactiver caméra</button>
+
+<form method="POST" action="upload.php" enctype="multipart/form-data" id="uploadForm" style="display:none;">
     <input type="hidden" name="photo" id="photoInput">
-    <select name="sticker" id="stickerWebcam" required>
-        <option value="moustache.png">Moustache</option>
-        <option value="lunette.png">Lunettes</option>
-        <option value="chapeau.png">Chapeau</option>
-    </select><br><br>
-    <button id="snapBtn" disabled>Prendre la photo</button>
+    <input type="hidden" name="sticker" id="stickerHidden">
 </form>
 
 <script>
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
+let stream = null;
+const video = document.createElement('video');
+video.autoplay = true;
+
+const preview = document.getElementById('preview');
+const ctx = preview.getContext('2d');
 const snapBtn = document.getElementById('snapBtn');
-const photoInput = document.getElementById('photoInput');
 const stickerSelect = document.getElementById('stickerWebcam');
+const photoInput = document.getElementById('photoInput');
+const stickerHidden = document.getElementById('stickerHidden');
+const fileInput = document.getElementById('fileInput');
+const clearFileBtn = document.getElementById('clearFileBtn');
+const camToggleBtn = document.getElementById('camToggleBtn');
 
-// Accéder à la webcam
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => { video.srcObject = stream; })
-  .catch(err => { console.error("Webcam inaccessible", err); });
-
-// Activer le bouton dès qu'un sticker est choisi
-stickerSelect.addEventListener('change', () => { snapBtn.disabled = false; });
-
-// Capture photo
-snapBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-
-  // Convertir en base64
-  photoInput.value = canvas.toDataURL('image/png');
-
-  // Copier sticker sélectionné
-  document.getElementById('stickerWebcam').name = 'sticker';
-
-  // Soumettre le formulaire
-  document.getElementById('uploadForm').submit();
+let stickerImg = new Image();
+stickerSelect.addEventListener('change', () => {
+    stickerImg.src = 'stickers/' + stickerSelect.value;
+    snapBtn.disabled = !stickerImg.src || (!fileInput.files.length && !stream);
 });
+
+// Gestion caméra
+function startCamera() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+    .then(s => { stream = s; video.srcObject = stream; camToggleBtn.textContent = "Désactiver caméra"; snapBtn.disabled = false; })
+    .catch(err => console.error("Webcam inaccessible", err));
+}
+
+function stopCamera() {
+    if (stream) { stream.getTracks().forEach(track => track.stop()); stream = null; camToggleBtn.textContent = "Activer caméra"; snapBtn.disabled = fileInput.files.length === 0; }
+}
+
+camToggleBtn.addEventListener('click', (e) => { e.preventDefault(); if(stream) stopCamera(); else startCamera(); });
+
+// Lecture du fichier uploadé
+let uploadedImg = null;
+fileInput.addEventListener('change', () => {
+    if (!fileInput.files.length) { uploadedImg = null; snapBtn.disabled = !stream; return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        uploadedImg = new Image();
+        uploadedImg.src = e.target.result;
+        uploadedImg.onload = () => { snapBtn.disabled = stickerImg.src === '' ? true : false; };
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+});
+
+// Supprimer l'image uploadée
+clearFileBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    fileInput.value = "";
+    uploadedImg = null;
+    snapBtn.disabled = !stream;
+});
+
+// Dessin en boucle
+function drawLoop() {
+    const canvasW = preview.width;
+    const canvasH = preview.height;
+
+    // Remplir en noir
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvasW, canvasH);
+
+    let drawW, drawH, offsetX, offsetY;
+
+    if (uploadedImg) {
+        const ratio = Math.min(canvasW / uploadedImg.width, canvasH / uploadedImg.height);
+        drawW = uploadedImg.width * ratio;
+        drawH = uploadedImg.height * ratio;
+        offsetX = (canvasW - drawW) / 2;
+        offsetY = (canvasH - drawH) / 2;
+        ctx.drawImage(uploadedImg, offsetX, offsetY, drawW, drawH);
+    } else if (stream && video.videoWidth && video.videoHeight) {
+        const ratio = Math.min(canvasW / video.videoWidth, canvasH / video.videoHeight);
+        drawW = video.videoWidth * ratio;
+        drawH = video.videoHeight * ratio;
+        offsetX = (canvasW - drawW) / 2;
+        offsetY = (canvasH - drawH) / 2;
+        ctx.drawImage(video, offsetX, offsetY, drawW, drawH);
+    }
+
+    // Sticker en bas à droite
+    if (stickerImg.complete) {
+        const sw = canvasW * 0.2;
+        const sh = stickerImg.height * (sw / stickerImg.width);
+        ctx.drawImage(stickerImg, canvasW - sw - 10, canvasH - sh - 10, sw, sh);
+    }
+
+    requestAnimationFrame(drawLoop);
+}
+
+
+drawLoop();
+
+// Capture / upload
+snapBtn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    photoInput.value = preview.toDataURL('image/png');
+    stickerHidden.value = stickerSelect.value;
+    document.getElementById('uploadForm').submit();
+});
+
+// Démarrage initial caméra
+startCamera();
 </script>
 </body>
 </html>
