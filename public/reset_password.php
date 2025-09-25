@@ -38,6 +38,8 @@ if (isset($_GET['token'])) {
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <link rel="stylesheet" href="style.css">
+    <?php include 'header.php'; ?>
     <meta charset="UTF-8">
     <title>Réinitialisation mot de passe</title>
 </head>

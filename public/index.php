@@ -3,21 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Camagru</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- favicon ici -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Bienvenue sur Camagru !</h1>
 
-    <a href="upload.php"><button>Upload des images</button></a>
+    <?php include 'header.php'; ?>
 
-    <button onclick="window.location.href='gallery.php'">Ma gallerie</button>
-
-    <button onclick="window.location.href='register.php'">S'inscrire</button>
-
-    <button onclick="window.location.href='login.php'">Connexion</button>
-
-    <button onclick="window.location.href='profile.php'">Mon profil</button>
+    <main>
+        <p>Bienvenue sur Camagru !</p>
+    </main>
 
 </body>
 </html>
-

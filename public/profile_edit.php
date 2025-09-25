@@ -67,6 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <link rel="stylesheet" href="style.css">
+    <?php include 'header.php'; ?>
     <meta charset="UTF-8">
     <title>Modifier le profil</title>
 </head>
