@@ -88,6 +88,6 @@ $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endif; ?>
     <!-- ===== Fin des interactions ===== -->
 
-    <p><a href="gallery.php">Retour à la galerie</a></p>
+    <p><a href="home">Retour à la galerie</a></p>
 </body>
 </html>
