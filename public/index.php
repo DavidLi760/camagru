@@ -1,7 +1,7 @@
 <?php
 require_once "pdo.php"; // connexion à la base
 
-$imagesPerPage = 5; // nombre d'images par page
+$imagesPerPage = 8; // nombre d'images par page
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 $offset = ($page - 1) * $imagesPerPage;
@@ -29,8 +29,8 @@ $totalPages = ceil($totalImages / $imagesPerPage);
     <link rel="stylesheet" href="style.css">
     <style>
         .gallery-img {
-            width: 200px;       /* largeur fixe */
-            height: 200px;      /* hauteur fixe */
+            width: 20vw;       /* largeur fixe */
+            height: 400px;      /* hauteur fixe */
             object-fit: cover;  /* recadre l'image pour remplir le carré */
             margin: 10px;
             border-radius: 8px; /* optionnel, coins arrondis */
@@ -59,7 +59,7 @@ $totalPages = ceil($totalImages / $imagesPerPage);
                 <?php if ($i == $page): ?>
                     <strong><?php echo $i; ?></strong>
                 <?php else: ?>
-                    <a href="gallery.php?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                    <a href="index.php?page=<?php echo $i; ?>"><?php echo $i; ?></a>
                 <?php endif; ?>
             <?php endfor; ?>
         </div>
