@@ -55,7 +55,7 @@ $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
     <h1>Photo</h1>
-    <img src="<?php echo $filepath; ?>" style="max-width:600px; display:block; margin-bottom:20px;">
+    <img src="<?php echo $filepath; ?>" style="height:50vh; width:50vw; display:block; margin-bottom:20px;">
 
     <!-- ===== Ici on met le script des interactions ===== -->
     <h2>Interactions</h2>

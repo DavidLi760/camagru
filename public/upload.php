@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <input type="file" id="fileInput" accept="image/*">
 <button id="clearFileBtn">❌ Supprimer</button><br><br>
 
-<canvas id="preview" width="400" height="300" style="border:1px solid #ccc;"></canvas><br>
+<canvas id="preview" width="1000" height="800" style="border:1px solid #ccc;"></canvas><br>
 
 <label for="stickerWebcam">Choisir un sticker :</label>
 <select id="stickerWebcam" required>
@@ -231,10 +231,6 @@ function drawLoop() {
 
     requestAnimationFrame(drawLoop);
 }
-video.style.display = "block";
-video.style.width = "400px";
-video.style.height = "300px";
-document.body.insertBefore(video, preview);
 
 drawLoop();
 
