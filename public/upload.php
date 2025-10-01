@@ -127,6 +127,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 let stream = null;
 const video = document.createElement('video');
 video.autoplay = true;
+video.playsInline = true;
+video.setAttribute("muted", true); // important pour Chrome/iOS
+video.style.display = "none"; // on l'ajoute au DOM mais caché
+document.body.appendChild(video);
 
 const preview = document.getElementById('preview');
 const ctx = preview.getContext('2d');
@@ -147,20 +151,43 @@ stickerSelect.addEventListener('change', () => {
 // Gestion caméra
 function startCamera() {
     navigator.mediaDevices.getUserMedia({ video: true })
-    .then(s => { stream = s; video.srcObject = stream; camToggleBtn.textContent = "Désactiver caméra"; snapBtn.disabled = false; })
-    .catch(err => console.error("Webcam inaccessible", err));
+    .then(s => {
+        console.log("✅ Webcam activée");
+        stream = s;
+        video.srcObject = stream;
+        video.play().then(() => {
+            console.log("🎥 Lecture lancée");
+        }).catch(err => console.error("❌ play() a échoué :", err));
+    })
+    .catch(err => {
+        console.error("❌ Webcam inaccessible :", err);
+        alert("Erreur caméra : " + err.message);
+    });
 }
+
 
 function stopCamera() {
-    if (stream) { stream.getTracks().forEach(track => track.stop()); stream = null; camToggleBtn.textContent = "Activer caméra"; snapBtn.disabled = fileInput.files.length === 0; }
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+        camToggleBtn.textContent = "Activer caméra";
+        snapBtn.disabled = fileInput.files.length === 0;
+    }
 }
 
-camToggleBtn.addEventListener('click', (e) => { e.preventDefault(); if(stream) stopCamera(); else startCamera(); });
+camToggleBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if(stream) stopCamera(); else startCamera();
+});
 
 // Lecture du fichier uploadé
 let uploadedImg = null;
 fileInput.addEventListener('change', () => {
-    if (!fileInput.files.length) { uploadedImg = null; snapBtn.disabled = !stream; return; }
+    if (!fileInput.files.length) {
+        uploadedImg = null;
+        snapBtn.disabled = !stream;
+        return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
         uploadedImg = new Image();
@@ -183,30 +210,20 @@ function drawLoop() {
     const canvasW = preview.width;
     const canvasH = preview.height;
 
-    // Remplir en noir
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvasW, canvasH);
-
-    let drawW, drawH, offsetX, offsetY;
+    ctx.clearRect(0, 0, canvasW, canvasH);
 
     if (uploadedImg) {
         const ratio = Math.min(canvasW / uploadedImg.width, canvasH / uploadedImg.height);
-        drawW = uploadedImg.width * ratio;
-        drawH = uploadedImg.height * ratio;
-        offsetX = (canvasW - drawW) / 2;
-        offsetY = (canvasH - drawH) / 2;
+        const drawW = uploadedImg.width * ratio;
+        const drawH = uploadedImg.height * ratio;
+        const offsetX = (canvasW - drawW) / 2;
+        const offsetY = (canvasH - drawH) / 2;
         ctx.drawImage(uploadedImg, offsetX, offsetY, drawW, drawH);
-    } else if (stream && video.videoWidth && video.videoHeight) {
-        const ratio = Math.min(canvasW / video.videoWidth, canvasH / video.videoHeight);
-        drawW = video.videoWidth * ratio;
-        drawH = video.videoHeight * ratio;
-        offsetX = (canvasW - drawW) / 2;
-        offsetY = (canvasH - drawH) / 2;
-        ctx.drawImage(video, offsetX, offsetY, drawW, drawH);
+    } else if (stream) {
+        ctx.drawImage(video, 0, 0, canvasW, canvasH);
     }
 
-    // Sticker en bas à droite
-    if (stickerImg.complete) {
+    if (stickerImg.complete && stickerImg.naturalWidth > 0) {
         const sw = canvasW * 0.2;
         const sh = stickerImg.height * (sw / stickerImg.width);
         ctx.drawImage(stickerImg, canvasW - sw - 10, canvasH - sh - 10, sw, sh);
@@ -214,7 +231,10 @@ function drawLoop() {
 
     requestAnimationFrame(drawLoop);
 }
-
+video.style.display = "block";
+video.style.width = "400px";
+video.style.height = "300px";
+document.body.insertBefore(video, preview);
 
 drawLoop();
 
@@ -229,5 +249,6 @@ snapBtn.addEventListener('click', (e)=>{
 // Démarrage initial caméra
 startCamera();
 </script>
+
 </body>
 </html>
