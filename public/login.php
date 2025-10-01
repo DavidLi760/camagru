@@ -4,6 +4,11 @@ require_once __DIR__ . '/../config/database.php';
 
 $message = '';
 
+if (isset($_SESSION['user_id'])) {
+    header('Location: profile.php');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']); // utilisation du username
     $password = $_POST['password'];
