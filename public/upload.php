@@ -103,10 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 <h1>Uploader une photo ou utiliser la webcam avec sticker</h1>
-<input type="file" id="fileInput" accept="image/*">
-<button id="clearFileBtn">❌ Supprimer</button><br><br>
 
-<h2>📸 Vos photos précédentes</h2>
 <div style="display: flex; gap: 20px; align-items: flex-start;">
     <!-- Galerie scrollable -->
     <div id="gallery" style="
@@ -123,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("SELECT image_path FROM images_upload WHERE user_id = :uid ORDER BY id DESC");
         $stmt->execute([':uid' => $_SESSION['user_id']]);
         $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+        
         foreach ($images as $img) {
             $path = htmlspecialchars($img['image_path']);
             echo "<div style='border:1px solid #aaa; padding:2px;'>
@@ -132,21 +129,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         ?>
     </div>
-
+    
     <!-- Canvas -->
     <canvas id="preview" width="800" height="600" style="border:1px solid #ccc;"></canvas>
 </div>
 
-
-<label for="stickerWebcam">Choisir un sticker :</label>
-<select id="stickerWebcam" required>
-    <option value="moustache.png">Moustache</option>
-    <option value="lunette.png">Lunettes</option>
-    <option value="chapeau.png">Chapeau</option>
-</select><br><br>
-
-<button id="snapBtn" disabled>Prendre / Uploader la photo</button>
-<button id="camToggleBtn">Désactiver caméra</button>
+<div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <input type="file" id="fileInput" accept="image/*">
+    <button id="clearFileBtn">❌ Supprimer</button>
+    <select id="stickerWebcam" required>
+        <option value="moustache.png">Moustache</option>
+        <option value="lunette.png">Lunettes</option>
+        <option value="chapeau.png">Chapeau</option>
+    </select>
+    <button id="snapBtn" disabled>Prendre / Uploader la photo</button>
+    <button id="camToggleBtn">Camera on/off</button>
+</div>
 
 <form method="POST" action="upload.php" enctype="multipart/form-data" id="uploadForm" style="display:none;">
     <input type="hidden" name="photo" id="photoInput">
@@ -200,7 +198,7 @@ function stopCamera() {
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
         stream = null;
-        camToggleBtn.textContent = "Activer caméra";
+        camToggleBtn.textContent = "Camera on/off";
         snapBtn.disabled = fileInput.files.length === 0;
     }
 }
