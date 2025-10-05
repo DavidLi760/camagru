@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <input type="file" id="fileInput" accept="image/*">
 <button id="clearFileBtn">❌ Supprimer</button><br><br>
 
-<canvas id="preview" width="1000" height="800" style="border:1px solid #ccc;"></canvas><br>
+<canvas id="preview" width="800" height="600" style="border:1px solid #ccc;"></canvas><br>
 
 <label for="stickerWebcam">Choisir un sticker :</label>
 <select id="stickerWebcam" required>

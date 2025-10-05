@@ -30,7 +30,7 @@ $totalPages = ceil($totalImages / $imagesPerPage);
     <style>
         .gallery-img {
             width: 20vw;       /* largeur fixe */
-            height: 400px;      /* hauteur fixe */
+            height: 370px;      /* hauteur fixe */
             object-fit: cover;  /* recadre l'image pour remplir le carré */
             margin: 10px;
             border-radius: 8px; /* optionnel, coins arrondis */
