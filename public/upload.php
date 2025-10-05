@@ -81,6 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ":uid" => $_SESSION['user_id'],
         ":path" => $filenameRel
     ]);
+    $stmt = $pdo->prepare("INSERT INTO images_upload (user_id, image_path) VALUES (:uid, :path)");
+    $stmt->execute([
+        ":uid" => $_SESSION['user_id'],
+        ":path" => $filenameRel
+    ]);
 
     $successMsg = "✅ Image générée avec sticker choisi !";
     $imgPathRel = $filenameRel;
@@ -97,16 +102,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 
-<?php if ($successMsg): ?>
-    <p><?php echo $successMsg; ?></p>
-    <img src="<?php echo htmlspecialchars($imgPathRel); ?>" style="max-width:400px">
-<?php endif; ?>
-
 <h1>Uploader une photo ou utiliser la webcam avec sticker</h1>
 <input type="file" id="fileInput" accept="image/*">
 <button id="clearFileBtn">❌ Supprimer</button><br><br>
 
-<canvas id="preview" width="800" height="600" style="border:1px solid #ccc;"></canvas><br>
+<h2>📸 Vos photos précédentes</h2>
+<div style="display: flex; gap: 20px; align-items: flex-start;">
+    <!-- Galerie scrollable -->
+    <div id="gallery" style="
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        height: 400px;
+        width: 200px;        /* largeur fixe */
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 5px;
+    ">
+        <?php
+        $stmt = $pdo->prepare("SELECT image_path FROM images_upload WHERE user_id = :uid ORDER BY id DESC");
+        $stmt->execute([':uid' => $_SESSION['user_id']]);
+        $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($images as $img) {
+            $path = htmlspecialchars($img['image_path']);
+            echo "<div style='border:1px solid #aaa; padding:2px;'>
+            <img src='$path' style='max-width:150px; display:block;'>
+            </div>";
+        }
+        ?>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="preview" width="800" height="600" style="border:1px solid #ccc;"></canvas>
+</div>
+
 
 <label for="stickerWebcam">Choisir un sticker :</label>
 <select id="stickerWebcam" required>

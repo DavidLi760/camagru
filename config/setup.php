@@ -10,8 +10,8 @@ try {
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             confirmation_token TEXT,   -- token unique envoyé par mail
-	    notify_on_comment INTEGER DEFAULT 1, --token pour envoyer mail quand comment
-	    reset_token TEXT,          -- token pour réinitialisation de mot de passe
+	        notify_on_comment INTEGER DEFAULT 1, --token pour envoyer mail quand comment
+	        reset_token TEXT,          -- token pour réinitialisation de mot de passe
             is_confirmed INTEGER DEFAULT 0, -- 0 = pas confirmé, 1 = confirmé
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
@@ -21,6 +21,17 @@ try {
     // Table des images
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS images (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            image_path TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+    ");
+
+// Table des images
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS images_upload (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             image_path TEXT NOT NULL,

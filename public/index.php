@@ -2,6 +2,11 @@
 session_start();
 require_once "pdo.php"; // connexion à la base
 
+if (basename($_SERVER['PHP_SELF']) !== 'upload.php' && isset($_SESSION['user_id'])) {
+    $stmt = $pdo->prepare("DELETE FROM images_upload WHERE user_id = :uid");
+    $stmt->execute([":uid" => $_SESSION['user_id']]);
+}
+
 $imagesPerPage = 8; // nombre d'images par page
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;

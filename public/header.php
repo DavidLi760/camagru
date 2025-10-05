@@ -1,5 +1,12 @@
 <header>
-    <h1>Bienvenue sur Camagru !</h1>
+    <?php
+    if (!isset($_SESSION['user_id'])) {
+        echo '<h1>Bienvenue sur Camagru !</h1>';
+    }
+    else
+        echo '<h1>Bienvenue sur Camagru, ' . htmlspecialchars($_SESSION['username']) . ' !</h1>';
+    ?>
+    
     <nav>
         <button onclick="location.href='home'">Accueil</button>
         <button onclick="location.href='upload.php'">Upload</button>
