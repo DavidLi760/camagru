@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         display: flex;
         flex-direction: column;
         gap: 10px;
-        height: 400px;
+        height: 500px;
         width: 200px;        /* largeur fixe */
         overflow-y: auto;
         border: 1px solid #ccc;
