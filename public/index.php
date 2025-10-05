@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once "pdo.php"; // connexion à la base
 
 $imagesPerPage = 8; // nombre d'images par page
