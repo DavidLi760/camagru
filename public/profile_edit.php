@@ -25,22 +25,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newEmail    = trim($_POST['email']);
     $newPassword = $_POST['password'];
 
-    // Vérifier si l'email est déjà utilisé par un autre utilisateur
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id != :id");
-    $stmt->execute([':email' => $newEmail, ':id' => $userId]);
-    if ($stmt->fetch()) {
-        $message = "❌ Cet email est déjà utilisé par un autre utilisateur.";
-    } else {
+    $message = '';
+
+    // Vérifier si l'email est renseigné et déjà utilisé
+    if (!empty($newEmail)) {
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id != :id");
+        $stmt->execute([':email' => $newEmail, ':id' => $userId]);
+        if ($stmt->fetch()) {
+            $message = "❌ Cet email est déjà utilisé par un autre utilisateur.";
+        }
+    }
+
+    // Vérification de la complexité du mot de passe
+    $passwordErrors = [];
+    if (!empty($newPassword)) {
+        if (strlen($newPassword) < 8) $passwordErrors[] = "Le mot de passe doit contenir au moins 8 caractères.";
+        if (!preg_match('/[A-Z]/', $newPassword)) $passwordErrors[] = "Le mot de passe doit contenir au moins une lettre majuscule.";
+        if (!preg_match('/[a-z]/', $newPassword)) $passwordErrors[] = "Le mot de passe doit contenir au moins une lettre minuscule.";
+        if (!preg_match('/[0-9]/', $newPassword)) $passwordErrors[] = "Le mot de passe doit contenir au moins un chiffre.";
+        if (!preg_match('/[\W_]/', $newPassword)) $passwordErrors[] = "Le mot de passe doit contenir au moins un caractère spécial.";
+    }
+
+    if (!empty($passwordErrors)) {
+        $message = "❌ Erreurs dans le mot de passe :<br>" . implode("<br>", $passwordErrors);
+    }
+
+    // Si pas d'erreur → mise à jour
+    if (empty($message)) {
         try {
-            $params = [
-                ':username' => $newUsername,
-                ':email'    => $newEmail,
-                ':id'       => $userId
-            ];
+            $params = [':username' => $newUsername, ':id' => $userId];
+            $sql = "UPDATE users SET username = :username";
 
-            $sql = "UPDATE users SET username = :username, email = :email";
+            if (!empty($newEmail)) {
+                $sql .= ", email = :email";
+                $params[':email'] = $newEmail;
+            }
 
-            // Si l'utilisateur a saisi un nouveau mot de passe
             if (!empty($newPassword)) {
                 $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
                 $sql .= ", password = :password";
@@ -53,8 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute($params);
 
             $message = "✅ Profil mis à jour avec succès !";
-
-            // Mettre à jour le nom dans la session
             $_SESSION['username'] = $newUsername;
 
         } catch (PDOException $e) {
@@ -62,6 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -81,10 +101,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <form method="POST" action="">
         <input type="text" name="username" placeholder="Nom d'utilisateur" value="<?php echo htmlspecialchars($user['username']); ?>" required>
-        <input type="email" name="email" placeholder="Email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+        <input type="email" name="email" placeholder="Email">
         <input type="password" name="password" placeholder="Nouveau mot de passe (laisser vide pour ne pas changer)">
         <button type="submit">Mettre à jour</button>
     <a href="profile.php">Retour au profil</a>
-<?php include 'footer.php'; ?>
 </body>
 </html>
