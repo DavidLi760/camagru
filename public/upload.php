@@ -6,6 +6,9 @@ if (!isset($_SESSION['user_id'])) {
     die("❌ Vous devez être connecté pour uploader une image.");
 }
 
+$stmt = $pdo->prepare("DELETE FROM images_upload WHERE user_id = :uid");
+$stmt->execute([':uid' => $_SESSION['user_id']]);
+
 $uploadDir = __DIR__ . "/uploads/";
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
@@ -274,5 +277,6 @@ snapBtn.addEventListener('click', (e)=>{
 startCamera();
 </script>
 
+<?php include 'footer.php'; ?>
 </body>
 </html>

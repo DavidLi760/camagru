@@ -25,3 +25,31 @@ button {
     font-size: 16px;
     cursor: pointer;
 }
+
+#like-btn {
+    font-size: 1.5em;
+    padding: 5px 15px;
+    border-radius: 5px;
+    border: none;
+    background-color: #0bebdf;
+    color: #000;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+#like-btn:hover {
+    transform: scale(1.1);
+    background-color: #1ee3f1;
+}
+
+footer {
+    position: fixed;      /* colle le footer par rapport à la fenêtre */
+    bottom: 0;            /* en bas */
+    left: 0;              /* tout à gauche */
+    width: 100%;          /* prend toute la largeur */
+    background: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    z-index: 1000;        /* devant le contenu si besoin */
+}

@@ -85,5 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="password" name="password" placeholder="Nouveau mot de passe (laisser vide pour ne pas changer)">
         <button type="submit">Mettre à jour</button>
     <a href="profile.php">Retour au profil</a>
+<?php include 'footer.php'; ?>
 </body>
 </html>

@@ -55,5 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="email" name="email" placeholder="Votre email" required>
         <button type="submit">Envoyer le lien de réinitialisation</button>
     </form>
+<?php include 'footer.php'; ?>
 </body>
 </html>

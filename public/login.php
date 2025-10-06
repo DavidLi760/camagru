@@ -51,5 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit">Se connecter</button>
         <p><a href="forgot_password.php">Mot de passe oublié ?</a></p>
     </form>
+<?php include 'footer.php'; ?>
 </body>
 </html>

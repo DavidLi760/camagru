@@ -144,5 +144,6 @@ $totalPages = ceil($totalImages / $imagesPerPage);
 </div>
 
     <?php endif; ?>
+<?php include 'footer.php'; ?>
 </body>
 </html>

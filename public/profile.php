@@ -96,5 +96,6 @@ $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
+<?php include 'footer.php'; ?>
 </body>
 </html>

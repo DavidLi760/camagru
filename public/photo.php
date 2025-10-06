@@ -57,17 +57,24 @@ $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h1>Photo</h1>
     <img src="<?php echo $filepath; ?>" style="height:1000; width:700; display:block; margin-bottom:20px;">
 
-    <!-- ===== Ici on met le script des interactions ===== -->
-    <h2>Interactions</h2>
-
     <!-- Likes -->
-    <p>👍 Likes : <?php echo $likeCount; ?></p>
+<div style="display: flex; align-items: center; gap: 10px;">
+    <p style="margin: 0; font-size: 1.5em;">
+        👍 Likes : <span id="like-count"><?php echo $likeCount; ?></span>
+    </p>
+
     <?php if (isset($_SESSION['user_id'])): ?>
-    <form method="POST" action="like.php?file=<?php echo urlencode($filename); ?>">
-        <input type="hidden" name="image_id" value="<?php echo $imageId; ?>">
-        <button type="submit">Like</button>
-    </form>
+        <button id="like-btn" data-id="<?php echo $imageId; ?>" style="font-size: 1.5em; cursor:pointer;">
+            👍
+        </button>
     <?php endif; ?>
+</div>
+
+
+
+
+
+
 
     <!-- Commentaires -->
     <h3>Commentaires</h3>
@@ -89,5 +96,30 @@ $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- ===== Fin des interactions ===== -->
 
     <p><a href="home">Retour à la galerie</a></p>
+<script>
+const likeBtn = document.getElementById('like-btn');
+if (likeBtn) {
+    likeBtn.addEventListener('click', () => {
+        const imageId = likeBtn.dataset.id;
+
+        fetch('like.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'image_id=' + encodeURIComponent(imageId)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('like-count').textContent = data.likeCount;
+            } else {
+                alert(data.message || 'Erreur lors du like');
+            }
+        })
+        .catch(err => console.error('Erreur AJAX:', err));
+    });
+}
+</script>
+
+<?php include 'footer.php'; ?>
 </body>
 </html>
