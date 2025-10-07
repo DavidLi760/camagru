@@ -143,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
+    margin-left: 325px;
     width: 600px;       /* adapte selon ton layout */
     max-width: 100%;
     padding: 5px;
