@@ -53,3 +53,8 @@ footer {
     text-align: center;
     z-index: 1000;        /* devant le contenu si besoin */
 }
+
+.sticker-item:hover {
+    transform: scale(1.1);
+    transition: 0.2s;
+}

@@ -137,15 +137,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <canvas id="preview" width="800" height="600" style="border:1px solid #ccc;"></canvas>
 </div>
 
+<div id="stickersGallery" style="
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    width: 600px;       /* adapte selon ton layout */
+    max-width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+">
+    <?php
+    $stickers = glob($stickersDir . "*.png");
+    foreach ($stickers as $s) {
+        $name = basename($s);
+        echo "<img src='stickers/$name' 
+                   data-sticker='$name' 
+                   style='width: 80px; height: 80px; object-fit: contain; cursor: pointer; border: 2px solid transparent; border-radius: 8px;' 
+                   class='sticker-item'>";
+    }
+    ?>
+</div>
 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
     <input type="file" id="fileInput" accept="image/*">
     <button id="clearFileBtn">❌ Supprimer</button>
-    <select id="stickerWebcam" required>
-        <option value="moustache.png">Moustache</option>
-        <option value="lunette.png">Lunettes</option>
-        <option value="chapeau.png">Chapeau</option>
-    </select>
-    <button id="snapBtn" disabled>Prendre / Uploader la photo</button>
+
+
+        <button id="snapBtn" disabled>Prendre / Uploader la photo</button>
     <button id="camToggleBtn">Camera on/off</button>
 </div>
 
@@ -173,11 +193,26 @@ const fileInput = document.getElementById('fileInput');
 const clearFileBtn = document.getElementById('clearFileBtn');
 const camToggleBtn = document.getElementById('camToggleBtn');
 
+let selectedSticker = null;
 let stickerImg = new Image();
-stickerSelect.addEventListener('change', () => {
-    stickerImg.src = 'stickers/' + stickerSelect.value;
-    snapBtn.disabled = !stickerImg.src || (!fileInput.files.length && !stream);
+
+document.querySelectorAll('.sticker-item').forEach(img => {
+    img.addEventListener('click', () => {
+        // Désélectionner les autres
+        document.querySelectorAll('.sticker-item').forEach(i => i.style.border = "2px solid transparent");
+        
+        // Marquer celui-ci comme sélectionné
+        img.style.border = "2px solid #00aaff";
+        selectedSticker = img.dataset.sticker;
+        
+        // Charger le sticker dans le canvas
+        stickerImg.src = 'stickers/' + selectedSticker;
+        stickerHidden.value = selectedSticker;
+
+        snapBtn.disabled = (!selectedSticker || (!fileInput.files.length && !stream));
+    });
 });
+
 
 // Gestion caméra
 function startCamera() {
@@ -186,6 +221,7 @@ function startCamera() {
         console.log("✅ Webcam activée");
         stream = s;
         video.srcObject = stream;
+        snapBtn.disabled = !selectedSticker || (!uploadedImg && !stream);
         video.play().then(() => {
             console.log("🎥 Lecture lancée");
         }).catch(err => console.error("❌ play() a échoué :", err));
@@ -233,7 +269,7 @@ clearFileBtn.addEventListener('click', (e) => {
     e.preventDefault();
     fileInput.value = "";
     uploadedImg = null;
-    snapBtn.disabled = !stream;
+    snapBtn.disabled = (!uploadedImg && !stream) || !selectedSticker;
 });
 
 // Dessin en boucle
@@ -266,12 +302,57 @@ function drawLoop() {
 drawLoop();
 
 // Capture / upload
-snapBtn.addEventListener('click', (e)=>{
+// Capture / upload
+snapBtn.addEventListener('click', async (e)=>{
     e.preventDefault();
-    photoInput.value = preview.toDataURL('image/png');
-    stickerHidden.value = stickerSelect.value;
-    document.getElementById('uploadForm').submit();
+
+    if (!selectedSticker) {
+        alert("❌ Sélectionne d'abord un sticker !");
+        return;
+    }
+
+    // Convertir le canvas en base64
+    const photoData = preview.toDataURL('image/png');
+
+    // Préparer les données pour le backend
+    const formData = new FormData();
+    formData.append('photo', photoData);
+    formData.append('sticker', selectedSticker);
+
+    try {
+        const res = await fetch('upload.php', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.text();
+
+        // 🔍 Optionnel : log si tu veux débugger
+        console.log("Réponse serveur :", data);
+
+        // ✅ On ajoute directement la nouvelle image à la galerie
+        // Le backend enregistre les fichiers dans /uploads/
+        const match = data.match(/uploads\/img_[^'"\s]+\.png/);
+        if (match) {
+            const newImg = document.createElement('img');
+            newImg.src = match[0];
+            newImg.style.maxWidth = "150px";
+            newImg.style.display = "block";
+
+            const div = document.createElement('div');
+            div.style.border = "1px solid #aaa";
+            div.style.padding = "2px";
+            div.appendChild(newImg);
+
+            document.getElementById('gallery').prepend(div);
+        }
+
+    } catch (err) {
+        console.error("❌ Erreur fetch :", err);
+        alert("Erreur lors de l'envoi de la photo");
+    }
 });
+
+
 
 // Démarrage initial caméra
 startCamera();
