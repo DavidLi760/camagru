@@ -19,6 +19,11 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM images");
 $stmt->execute();
 $totalImages = $stmt->fetchColumn();
 $totalPages = ceil($totalImages / $imagesPerPage);
+if ($page > $totalPages && $totalPages > 0) {
+    header("Location: index.php?page=$totalPages");
+    exit;
+}
+
 
 ?>
 
