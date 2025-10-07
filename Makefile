@@ -1,5 +1,4 @@
 SERVICE=php
-PORT=8080
 
 all: up
 
@@ -12,7 +11,7 @@ setup:
 	docker-compose exec $(SERVICE) php config/setup.php
 
 stop:
-	docker-compose down
+	docker-compose down -v --remove-orphans
 
 re: stop up
 
