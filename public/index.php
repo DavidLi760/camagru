@@ -15,9 +15,11 @@ $stmt->execute();
 $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Nombre total d'images pour calculer le nombre de pages
-$stmt = $pdo->query("SELECT COUNT(*) FROM images");
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM images");
+$stmt->execute();
 $totalImages = $stmt->fetchColumn();
 $totalPages = ceil($totalImages / $imagesPerPage);
+
 ?>
 
 <!DOCTYPE html>
