@@ -292,9 +292,9 @@ function drawLoop() {
     }
 
     if (stickerImg.complete && stickerImg.naturalWidth > 0) {
-        const sw = canvasW * 0.2;
-        const sh = stickerImg.height * (sw / stickerImg.width);
-        ctx.drawImage(stickerImg, canvasW - sw - 10, canvasH - sh - 10, sw, sh);
+        const sw = preview.width;   // largeur du canvas
+        const sh = preview.height;  // hauteur du canvas
+        ctx.drawImage(stickerImg, 0, 0, sw, sh);
     }
 
     requestAnimationFrame(drawLoop);
