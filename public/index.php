@@ -24,7 +24,6 @@ if ($page > $totalPages && $totalPages > 0) {
     exit;
 }
 
-
 ?>
 
 <!DOCTYPE html>

@@ -2,27 +2,36 @@
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
+// Générer un token CSRF si inexistant
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Vérification du paramètre "file"
 if (!isset($_GET['file'])) {
-    echo "Aucune photo sélectionnée.";
+    header("Location: index.php?error=no_photo");
     exit;
 }
 
 $filename = basename($_GET['file']);
-$filepath = "uploads/$filename";
+$filepath = __DIR__ . "/uploads/$filename";
 
-// Vérifier si le fichier existe
-if (!file_exists($filepath)) {
-    echo "Photo introuvable.";
+// Vérifier si le fichier existe et est bien une image
+$allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+if (!file_exists($filepath) || !in_array($ext, $allowed_extensions)) {
+    header("Location: index.php?error=no_photo");
     exit;
 }
 
-// Récupérer l'image depuis la base pour connaître son ID
+// Récupérer l'image depuis la base
 $stmt = $pdo->prepare("SELECT * FROM images WHERE image_path = :path");
-$stmt->execute([':path' => $filepath]);
+$stmt->execute([':path' => "uploads/$filename"]); // Stockage relatif
 $image = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$image) {
-    echo "Image introuvable dans la base.";
+    header("Location: index.php?error=no_photo");
     exit;
 }
 
@@ -48,64 +57,62 @@ $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <link rel="stylesheet" href="style.css">
-    <?php include 'header.php'; ?>
     <meta charset="UTF-8">
     <title>Camagru - Photo</title>
+    <link rel="stylesheet" href="style.css">
+    <?php include 'header.php'; ?>
 </head>
 <body>
     <h1>Photo</h1>
-    <img src="<?php echo $filepath; ?>" style="height:1000; width:700; display:block; margin-bottom:20px;">
+
+    <img src="<?= htmlspecialchars("uploads/$filename") ?>" alt="Photo Camagru" style="max-width:700px; height:auto; display:block; margin-bottom:20px;">
 
     <!-- Likes -->
-<div style="display: flex; align-items: center; gap: 10px;">
-    <p style="margin: 0; font-size: 1.5em;">
-        👍 Likes : <span id="like-count"><?php echo $likeCount; ?></span>
-    </p>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <p style="margin: 0; font-size: 1.5em;">
+            👍 Likes : <span id="like-count"><?= $likeCount ?></span>
+        </p>
 
-    <?php if (isset($_SESSION['user_id'])): ?>
-        <button id="like-btn" data-id="<?php echo $imageId; ?>" style="font-size: 1.5em; cursor:pointer;">
-            👍
-        </button>
-    <?php endif; ?>
-</div>
-
-
-
-
-
-
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <button id="like-btn" data-id="<?= $imageId ?>" data-csrf="<?= $_SESSION['csrf_token'] ?>" style="font-size: 1.5em; cursor:pointer;">
+                👍
+            </button>
+        <?php endif; ?>
+    </div>
 
     <!-- Commentaires -->
     <h3>Commentaires</h3>
     <?php foreach ($comments as $c): ?>
         <div>
-            <strong><?php echo htmlspecialchars($c['username']); ?></strong> :
-            <?php echo htmlspecialchars($c['content']); ?>
-            <small>(<?php echo $c['created_at']; ?>)</small>
+            <strong><?= htmlspecialchars($c['username']) ?></strong> :
+            <?= htmlspecialchars($c['content']) ?>
+            <small>(<?= htmlspecialchars($c['created_at']) ?>)</small>
         </div>
     <?php endforeach; ?>
 
+    <!-- Formulaire commentaire -->
     <?php if (isset($_SESSION['user_id'])): ?>
-    <form method="POST" action="comment.php?file=<?php echo urlencode($filename); ?>">
-        <input type="hidden" name="image_id" value="<?php echo $imageId; ?>">
+    <form method="POST" action="comment.php">
+        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+        <input type="hidden" name="image_id" value="<?= $imageId ?>">
         <textarea name="content" placeholder="Votre commentaire..." required></textarea>
         <button type="submit">Publier</button>
     </form>
     <?php endif; ?>
-    <!-- ===== Fin des interactions ===== -->
 
     <p><a href="home">Retour à la galerie</a></p>
+
 <script>
 const likeBtn = document.getElementById('like-btn');
 if (likeBtn) {
     likeBtn.addEventListener('click', () => {
         const imageId = likeBtn.dataset.id;
+        const csrfToken = likeBtn.dataset.csrf;
 
         fetch('like.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'image_id=' + encodeURIComponent(imageId)
+            body: 'image_id=' + encodeURIComponent(imageId) + '&csrf_token=' + encodeURIComponent(csrfToken)
         })
         .then(response => response.json())
         .then(data => {
